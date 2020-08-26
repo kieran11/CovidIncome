@@ -1,0 +1,94 @@
+---
+title: "Find Dissemination Area in Forward Sortation Area"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+## R Markdown
+
+```{r cars}
+
+### Read in shape file
+library(sf)
+library(rgdal)
+library(dplyr)
+library(leaflet)
+library(brms)
+library(ggplot2)
+
+s.sf <- st_read("C:/Users/Kieran Shah/Downloads/FSA/lfsa000b16a_e.shp")
+shape_proj<-st_transform(s.sf, CRS("+init=epsg:4326") )
+
+CovidTO = readr::read_csv("C:/Users/Kieran Shah/Downloads/COVID19 cases.csv") %>% 
+  count(FSA) %>% 
+  filter(!is.na(FSA))
+
+shpe_proj2 = shape_proj %>% 
+  filter(stringi::stri_sub(CFSAUID, 1, 1) %in% c( "M") | 
+           stringi::stri_sub(CFSAUID, 1, 2) %in% c( "L1", "L3", "L4", "L5", "L6", "L7")) %>% 
+  left_join(CovidTO, by = c("CFSAUID" = "FSA")) %>% 
+  mutate(n = ifelse(is.na(n), 0, n))
+  
+
+# options(cancensus.api_key = "CensusMapper_9ce3c354d0649556deb811886358c3f9")
+# options(cancensus.cache_path = "C:/Users/Kieran Shah/Downloads")
+# 
+# census_data <- get_census(dataset='CA16', regions=list(CMA="35535"),
+#                          vectors=c("v_CA16_2397",
+#                                    "v_CA16_4002", 
+#                                    "v_CA16_4014", 
+#                                    "v_CA16_4044",
+#                                    "v_CA16_4266",
+#                                    "v_CA16_4329",
+#                                    "v_CA16_4404",
+#                                    "v_CA16_4608",
+#                                    "v_CA16_4806",
+#                                    "v_CA16_425",
+#                                    "v_CA16_385" , 
+#                                    "v_CA16_388"	,
+#                                    "v_CA16_2552"	), level='DA', quiet = TRUE, 
+#                          geo_format = 'sf', labels = 'short')
+# 
+# dput(census_data , "C:/Users/Kieran Shah/Desktop/CovidIncomeAPI/CensusDataDA")
+
+Covid_in_tract <- sf::st_join( dget("C:/Users/Kieran Shah/Desktop/CovidIncomeAPI/CensusDataDA"), 
+                               shpe_proj2, join = st_intersects , 
+                               left = TRUE)
+
+CovidSummaryFSA = Covid_in_tract %>% 
+  as_tibble() %>% 
+  select( CFSAUID, Population, starts_with("v_") ) %>% 
+  na.omit(.)  %>% 
+  group_by(CFSAUID) %>% 
+  summarise_at(vars(starts_with("v_")), ~ weighted.mean(.,Population))  %>% 
+  ungroup()
+
+CovidSummaryFSA_wMap = CovidSummaryFSA %>% 
+  inner_join(shpe_proj2, by = c("CFSAUID"))
+
+dput(CovidSummaryFSA_wMap, "C:/Users/Kieran Shah/Desktop/CovidIncomeAPI/FSAFinalDS")
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r FSA_Plt, echo=FALSE}
+
+bins <- c(0, 10,50, 100,200, 300,400, 500, Inf)
+pal <- colorBin("RdYlBu", domain = shpe_proj2$n, bins = bins)
+
+leaflet(shpe_proj2) %>% 
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  addPolygons(fillColor = ~pal(n),
+              color = "white",
+              weight = 1,
+              opacity = 1,
+              fillOpacity = 0.65)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

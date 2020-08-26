@@ -1,0 +1,584 @@
+---
+title: "Covid Mapping"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+## City of Toronto Covid Mapping Project
+
+The purpose of this post it to use the Open Data Toronto portal to use their Covid-19 data, and to first map the data, and second, bring in Census 2016 data to show correlations between income, and other demographic variables and Covid-19 positive cases.
+
+## Get the data:
+
+Anyone can download the data [here](https://open.toronto.ca/dataset/covid-19-cases-in-toronto/). As mentioned on the website, it is important to note, that this dataset is updated every Monday morning. 
+
+```{r pckgsLd}
+
+library(dplyr)
+library(maps)
+library(sp)
+library(ggplot2)
+library(tidyr)
+library(leaflet)
+library(cancensus)
+library(sf)
+library(ggmap)
+library(brms)
+library(ggridges)
+library(gt)
+
+```
+
+Next, we use the very useful `R` package `cancensus` to get Census 2016 data. 
+
+Importantly, the only geographic variable in the City of Toronto dataset is Forward Sortation Area(FSA). To link the Census 2016 data, and the Covid data we could use the Statistics Canada PCCF file. However, the PCCF costs money. An alternative, is to find the center of each FSA, and then check whether that FSA is in the census tract polygon, provided by the Census 2016 data. 
+
+To get the center of the FSA, we use the neighbourhood name, and run it through the Google Maps API, using the `R` package `ggmap`. This gives us the latitude and longitude for all the FSAs. 
+
+
+```{r APIEg , results='hide', eval = FALSE, echo = TRUE}
+
+options(cancensus.api_key = "CanCensus API")
+options(cancensus.cache_path = "A Directory")
+
+register_google("Google API Maps key")          
+
+## Bring in Covid Data: 
+CovidTO = readr::read_csv("C:/Users/Kieran Shah/Downloads/COVID19 cases.csv") %>% 
+  count(`Neighbourhood Name`) %>% 
+  filter(!is.na(`Neighbourhood Name`))
+
+Long_Lats = ggmap::geocode(CovidTO$`Neighbourhood Name`)
+
+Long_Lats_all = bind_cols(CovidTO ,  Long_Lats) %>%
+  filter(!is.na(lon))
+
+Long_Lats_all = dget("Data/Covid_Long_Lat")
+
+Covid_sf = sf::st_as_sf(Long_Lats_all, coords = c("lon", "lat"), crs = 4326)
+```
+
+As we can see, we need an API key. It is very easy to sign up and get an API key at this [website](https://censusmapper.ca/). 
+
+After getting the Census 2016 data, we then use the package `sf`, to check whether the center of the FSA is within a given census tract. This [post](https://mattherman.info/blog/point-in-poly/) very helpfully explain this process. 
+
+```{r CancensusAPIEg , results='hide', eval = FALSE, echo = TRUE}
+
+census_data <- get_census(dataset='CA16', regions=list(CMA="35535"),
+                         vectors=c("v_CA16_2397",
+                                   "v_CA16_4002", 
+                                   "v_CA16_4014", 
+                                   "v_CA16_4044",
+                                   "v_CA16_4266",
+                                   "v_CA16_4329",
+                                   "v_CA16_4404",
+                                   "v_CA16_4608",
+                                   "v_CA16_4806",
+                                   "v_CA16_425",
+                                   "v_CA16_385" , 
+                                   "v_CA16_388"	,
+                                   "v_CA16_2552"	), level='CT', quiet = TRUE, 
+                         geo_format = 'sf', labels = 'short')
+
+Covid_in_tract <- sf::st_join( census_data, Covid_sf, join = st_intersects , 
+                               left = TRUE)
+
+Covid_in_tract2 = Covid_in_tract %>% 
+  rename(MedIncome = v_CA16_2397,
+       NA_Aboriginal = v_CA16_4002, 
+       Other_NA = v_CA16_4014,
+       European = v_CA16_4044,
+       Caribbean = v_CA16_4266,
+       Latin = v_CA16_4329,
+       African = v_CA16_4404,
+       Asian = v_CA16_4608, 
+       Oceania = v_CA16_4806,
+       HHsize = v_CA16_425,
+       Less_15 = v_CA16_385 , 
+       Btw_14_64 = v_CA16_388	,
+       Older64 = v_CA16_2552	
+)
+
+dput(Covid_in_tract2 , "Data/CovidMappingDF_2")
+
+
+```
+
+The complete dataset can be found [here](https://www.dropbox.com/preview/Public/CovidIncome/CovidMappingDF_2?role=personal). Note, the dataset is both a `data.frame` and a `sf` object. I have left the dataset has an `R` object for this reason. 
+
+```{r MapCovid}
+
+CovidMapAll = dget("Data/CovidMappingDF_2") %>% 
+  mutate(Cases = ifelse(is.na(n), 0, n),
+         NeighborNm = ifelse(is.na(`Neighbourhood Name`), "No Name", `Neighbourhood Name`)) 
+
+CovidMap = CovidMapAll %>% 
+  filter(CD_UID == "3520" )
+
+```
+
+
+The first plot shows the distribution of Covid-19 cases across the City of Toronto. As we can see, the highest tracts with Covid-19 cases are on the western border of the City of Toronto, near Brampton and Mississauga. The popup includes the median income percentile and the senior share percentile.  
+
+
+```{r CovidMap, echo = TRUE}
+
+
+CovidMap_MapF = CovidMap %>% 
+  mutate(MedIncPct = ntile(MedIncome,10),
+         Older64Pct = ntile(Older64,10)) %>% 
+  mutate_at(vars(MedIncPct, Older64Pct) , ~paste0(., "0 Percentile"))
+
+cov_popup <- paste0("<br><strong>Covid Cases: </strong>", 
+                        CovidMap$Cases , 
+                    "<br><strong>Median Income: </strong>", 
+                        CovidMap_MapF$MedIncPct ,
+                    "<br><strong>Senior Share: </strong>", 
+                        CovidMap_MapF$Older64Pct)
+
+bins <- c(0, 10,50, 100,200, 300,400, 500, 1000)
+pal <- colorBin("RdYlBu", domain = CovidMap_MapF$Cases, bins = bins)
+
+CovidMapLeaf = leaflet(CovidMap_MapF) %>% 
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  addPolygons(fillColor = ~pal(Cases),
+              color = "white",
+              weight = 1,
+              opacity = 1,
+              fillOpacity = 0.65,
+              popup = cov_popup) %>% 
+  addLegend("bottomright", pal = pal, values = ~CovidMap_MapF$Cases,
+    title = "Covid Cases",
+    opacity = 1)
+
+
+```
+
+
+
+## Distribution of Covid Cases: 
+
+Below is the distribution of Covid-19 cases by census tract. As we can see, the data is highly left skewed. 
+
+```{r DistrCovidCases}
+
+ggplot(CovidMap , aes(x= Cases)) +
+  geom_density()+
+  theme_classic() 
+
+
+```
+
+```{r mdlData}
+
+CovidMdl = CovidMapAll %>%
+  mutate_at(vars( Asian, African, NA_Aboriginal , Other_NA , European , Caribbean , Latin, Oceania ) , 
+            ~ . /Population) %>% 
+  as_tibble() %>%
+  select(Cases , MedIncome,
+       Asian,
+       African, 
+       Caribbean,
+       Latin,
+       NA_Aboriginal,
+       HHsize,
+       Older64 , CD_UID, 
+       GeoUID, 
+       NeighborNm) %>% 
+  na.omit() %>% 
+  mutate(MedIncome_2 = MedIncome**2 )
+
+CovidPltsDF = CovidMdl %>% 
+  mutate(Older64 = Older64 / 100,
+         Cases_Grouped = case_when(Cases == 0 ~ "Zero Cases",
+                                   Cases > 0 & Cases < 10 ~ "Between Zero and Ten",
+                                   Cases >= 10 & Cases < 50 ~ "Between 10 and 49",
+                                   Cases >= 50 & Cases < 100 ~ "Between 50 and 99",
+                                   Cases >= 100 & Cases < 200 ~ "Between 100 and 199",
+                                   Cases >= 200 & Cases < 300 ~ "Between 200 and 299",
+                                   Cases >= 300 & Cases < 400 ~ "Between 300 and 399",
+                                   Cases >= 400 & Cases < 500 ~ "Between 400 and 499",
+                                   TRUE ~ "More than 500") %>% 
+           as.factor(.), 
+         Case_grouped2 =relevel( Cases_Grouped, 
+                                levels = c("Zero Cases",
+                                  "Between 10 and 49",
+                                     "Between 100 and 199",
+                                     "Between 200 and 299",
+                                     "Between 300 and 399",
+                                     "Between 400 and 499",
+                                     "Between 50 and 99",
+                                     "More than 500"), ref = "Zero Cases")) 
+
+CovidPlts = CovidPltsDF %>%
+  filter(CD_UID == "3520") %>% 
+  select(-Cases, -Cases_Grouped, -GeoUID, -NeighborNm) %>% 
+  tidyr::gather(Nm, Value ,  -Case_grouped2  ) %>% 
+  group_by(Nm, Case_grouped2) %>% 
+  summarise_all(mean) %>% 
+  ungroup() %>% 
+  ggplot(. , aes(x = Case_grouped2, y = Value)) +
+  geom_col() +
+  coord_flip() +
+  theme_classic() +
+  labs(x = "Case Groupings") +
+  facet_wrap(~Nm, scales = "free", ncol = 2)
+
+```
+
+Below is the table that shows the distribution by category. As we can see, more than 90% of census tracts have zero cases. 
+
+```{r CTTract}
+
+
+CovidPltsDF %>% 
+  count(`Case Groupings` = Case_grouped2) %>% 
+  mutate(Pct = scales::percent( n / 1148)) %>%
+  rename(`Number of CTs` = n, `Percent of CTs` = Pct) %>% 
+  gt() %>% 
+  tab_header(
+    title = "Distribution of Covid-19 by Census Tract")
+
+```
+
+
+
+
+
+```{r mdls_data,eval = FALSE}
+
+
+CovidMdlF = CovidMdl %>%
+  mutate_at(vars(-Cases, -CD_UID, -NeighborNm, -GeoUID), ~ scale(.)[,1])
+
+CovidMdlF_Tor = CovidMdlF %>% 
+  filter(CD_UID == "3520")
+
+```
+
+```{r mdling , eval = FALSE , echo = FALSE}
+
+  
+  neg_binomial_1  = brm(data = CovidMdlF_Tor, family = negbinomial,
+      Cases ~ MedIncome + Asian + HHsize + Older64,
+      prior = c(prior(student_t(3, -2.3, 2.5), class = Intercept),
+                prior(normal(0, 2), class = b),
+                prior(gamma(0.01, 0.01), class = shape)),
+      iter = 3000, warmup = 1000, cores = 2, chains = 4,
+      seed = 11) 
+  
+  
+  neg_binomial_2 <- brm(Cases ~ MedIncome + Asian + Caribbean + Latin + NA_Aboriginal + African + 
+                         HHsize + Older64,
+                       data = CovidMdlF_Tor, family = negbinomial,
+                       prior = c(prior(student_t(3, -2.3, 2.5), class = Intercept),
+                prior(normal(0, 2), class = b),
+                prior(gamma(0.01, 0.01), class = shape)),
+                iter = 3000, warmup = 1000, cores = 2, chains = 4,
+                seed = 11) 
+  
+  
+  neg_binomial_3 <- brm(Cases ~ MedIncome * Older64 + Asian + Caribbean + Latin + NA_Aboriginal + African + 
+                         HHsize  + MedIncome_2  , 
+                   data = CovidMdlF_Tor , family = negbinomial ,
+                   prior = c(prior(student_t(3, -2.3, 2.5), class = Intercept),
+                prior(normal(0, 2), class = b),
+                prior(gamma(0.01, 0.01), class = shape)),
+                iter = 3000, warmup = 1000, cores = 2, chains = 4,
+                seed = 11,
+                control = list(adapt_delta = 0.95)) 
+  
+  
+  neg_binomial_4 <- brm(Cases ~ MedIncome * Older64 + Asian + Caribbean + Latin + NA_Aboriginal + African + 
+                         HHsize  , 
+                   data = CovidMdlF_Tor , family = negbinomial ,
+                   prior = c(prior(student_t(3, -2.3, 2.5), class = Intercept),
+                prior(normal(0, 2), class = b),
+                prior(gamma(0.01, 0.01), class = shape)),
+                iter = 3000, warmup = 1000, cores = 2, chains = 4,
+                seed = 11,
+                control = list(adapt_delta = 0.95)) 
+  
+  
+  neg_binomial_5 <- brm(Cases ~ MedIncome * HHsize  + Asian + Caribbean + Latin + NA_Aboriginal + African + 
+                         Older64  , 
+                   data = CovidMdlF_Tor , family = negbinomial ,
+                   prior = c(prior(student_t(3, -2.3, 2.5), class = Intercept),
+                prior(normal(0, 2), class = b),
+                prior(gamma(0.01, 0.01), class = shape)),
+                iter = 3000, warmup = 1000, cores = 2, chains = 4,
+                seed = 11,
+                control = list(adapt_delta = 0.95)) 
+  
+  zeroInflMdl_1 <- brm(Cases ~ MedIncome + Asian + HHsize + Older64, 
+                   data = CovidMdlF_Tor , family = zero_inflated_poisson(),
+                   iter = 3000, warmup = 1000, cores = 2, chains = 4,
+                   seed = 11) 
+  
+  
+  zeroInflMdl_2 <- brm(Cases ~ MedIncome + Asian + Caribbean + Latin + NA_Aboriginal + African + 
+                         HHsize + Older64,
+                       data = CovidMdlF_Tor, family = zero_inflated_poisson(),
+                       iter = 3000, warmup = 1000, cores = 2, chains = 4,
+                       seed = 11)
+  
+  
+  zeroInflMdl_3 <- brm(Cases ~ MedIncome * Older64 + Asian + Caribbean + Latin + NA_Aboriginal + African + 
+                         HHsize  + MedIncome_2  , 
+                   data = CovidMdlF_Tor , family = zero_inflated_poisson() ,
+                   iter = 3000, warmup = 1000, cores = 2, chains = 4,
+                   seed = 11)
+  
+zeroInflMdl_4 <- brm(Cases ~ MedIncome * Older64 + Asian + Caribbean + Latin + NA_Aboriginal + African + 
+                         HHsize  , 
+       data = CovidMdlF_Tor , family = zero_inflated_poisson() ,
+                   iter = 3000, warmup = 1000, cores = 2, chains = 4,
+                   seed = 11,
+       control = list(adapt_delta = 0.95)) 
+  
+  
+zeroInflMdl_5 <- brm(Cases ~ MedIncome * HHsize  + Asian + Caribbean + Latin + NA_Aboriginal + African + 
+                         Older64  , 
+                          data = CovidMdlF_Tor , family = zero_inflated_poisson() ,
+                   iter = 3000, warmup = 1000, cores = 2, chains = 4,
+                   seed = 11,
+                   control = list(adapt_delta = 0.95)) 
+  
+  
+  zeroInflMdl_1 <- add_criterion(zeroInflMdl_1, "waic")
+  zeroInflMdl_2 <- add_criterion(zeroInflMdl_2, "waic")
+  zeroInflMdl_3 <- add_criterion(zeroInflMdl_3, "waic")
+  zeroInflMdl_4 <- add_criterion(zeroInflMdl_4, "waic")
+  zeroInflMdl_5 <- add_criterion(zeroInflMdl_5, "waic")
+  
+  neg_binomial_1 <- add_criterion(neg_binomial_1, "waic")
+  neg_binomial_2 <- add_criterion(neg_binomial_2, "waic")
+  neg_binomial_3 <- add_criterion(neg_binomial_3, "waic")
+  neg_binomial_4 <- add_criterion(neg_binomial_4, "waic")
+  neg_binomial_5 <- add_criterion(neg_binomial_5, "waic")
+
+mdlWeightsZeroInfl = brms::model_weights(zeroInflMdl_1,zeroInflMdl_2, zeroInflMdl_3,
+                                         zeroInflMdl_4, zeroInflMdl_5,
+                                 weights = "waic")
+
+mdlWeightsNeg = brms::model_weights(neg_binomial_1, neg_binomial_2, neg_binomial_3,neg_binomial_4,
+                                    neg_binomial_5,
+                                 weights = "waic")
+
+mdlWeightsOverall = brms::model_weights(neg_binomial_4,zeroInflMdl_4   )
+  
+ModelResults = tibble(ModelNm = names(mdlWeightsZeroInfl ),
+       ModelVals =mdlWeightsZeroInfl ) %>% 
+  bind_rows(tibble(ModelNm = names(mdlWeightsNeg ),
+       ModelVals =mdlWeightsNeg )) %>% 
+  mutate(Model = stringi::stri_replace_all_regex( ModelNm , "[^[:alpha:]]", ""),
+         ModelIter = stringi::stri_replace_all_regex( ModelNm , "[^[:digit:]]", "")) %>% 
+  select(-ModelNm) %>% 
+  tidyr::spread(Model, ModelVals) 
+
+dput(ModelResults , "Data/ModelResults")
+
+
+```
+
+
+## Modeling:
+
+The first step of the modeling process is to model counts of Covid-19 cases by Census Tract. We could use a Poisson model, but a Poisson model assumes that the mean and the variance are equal. The mean of cases in our dataset is `r round(mean(CovidMap$Cases))`, and the variance is `r round(var(CovidMap$Cases))`. The mean is clearly not equal to the variance. 
+
+Instead, we first try a negative binomial model. The `brms` can handle negative binomial data, with the `family = negbinomial` parameter. The negative binomial model allows for the variance to be bigger than the mean, unlike the Poisson model.
+
+We test multiple models with different parameters. In the end, we choose the following predictors: 
+
+1.  Median Income
+2.  Percentage Older than 64
+3.  Different percentage of ethnicity
+4.  Household Size
+5.  An Interaction between median income and percentage older than 64. 
+
+
+## Zero Inflation Models: 
+
+An alternative to the negative-binomial model is a zero-inflated model. The zero-inflation model estimates two processes. First, we are estimating the count of Covid-19 cases in each Census Tract as we would with a Poisson model. Second, we are estimating the zero cases data process as well.  
+
+It is unclear whether there are two processes for zeroes for this Covid-19. A perfect example of two data structures of zeroes could be an aggregate smoking dataset with both smokers and non-smokers. There are smokers who may be attempting to quit, and who may have a day with zero cigarettes. There are also individuals who are not smokers, who simply consume zero cigarettes because they are not smokers. 
+
+For our data it is possible that testing could generate to separate process for zeroes. First, there are Census Tracts which report zeroes, but this is simply because testing capacity was not available. Second, there could be zeroes in a Census Tract because there are not Covid-19 cases. 
+
+## Compare Models
+
+To compare models, we use the Widely Applicable information Criterion (WAIC), as prescribed [here](https://bookdown.org/ajkurz/Statistical_Rethinking_recoded/monsters-and-mixtures.html). 
+
+
+```{r MdlResults}
+
+dget("Data/ModelResults") %>%
+  mutate_at(vars(negbinomial, zeroInflMdl), ~ round(., digits = 3)) %>% 
+  rename(`Model Number` = ModelIter , 
+         `Negative Binomial` = negbinomial, 
+         `Zero Infalted` = zeroInflMdl) %>% 
+  gt()
+
+```
+
+Overall, we see that using the WAIC, shows us that for both types of models, the model which includes an interaction between the share of the population over the age of 64 and census tract median income, is the best model. When we compare the best model for both negative binomial and zero-inflated, the negative binomial model is better.  
+
+
+```{r NegBinom , eval = FALSE}
+
+neg_binomial_4 <- brm(Cases ~ MedIncome * Older64 + Asian + Caribbean + Latin + NA_Aboriginal + African + 
+                       HHsize  , 
+                 data = CovidMdlF_Tor , family = negbinomial ,
+                 prior = c(prior(student_t(3, -2.3, 2.5), class = Intercept),
+              prior(normal(0, 2), class = b),
+              prior(gamma(0.01, 0.01), class = shape)),
+              iter = 3000, warmup = 1000, cores = 2, chains = 4,
+              seed = 11,
+              control = list(adapt_delta = 0.95)) 
+
+zeroInflMdl_4 <- brm(Cases ~ MedIncome * Older64 + Asian + Caribbean + Latin + NA_Aboriginal + African + 
+                         HHsize  , 
+       data = CovidMdlF_Tor , family = zero_inflated_poisson() ,
+                   iter = 3000, warmup = 1000, cores = 2, chains = 4,
+                   seed = 11,
+       control = list(adapt_delta = 0.95)) 
+
+
+PostNegBinom_4 = brms::posterior_samples(neg_binomial_4)
+PostZeroInfl_4 = brms::posterior_samples(zeroInflMdl_4)
+
+PredictCovidOther = CovidMapAll %>% 
+  filter(CD_UID != "3520") %>% 
+  select(GeoUID, NeighborNm) %>% 
+  inner_join(CovidMdlF  , 
+             by = c("GeoUID", "NeighborNm")  )
+
+NegBinomPredicted = predict(neg_binomial_4 , PredictCovidOther ) %>% as_tibble() %>% select(Estimate)
+ZeroInflPredicted = predict(zeroInflMdl_4 , PredictCovidOther ) %>% as_tibble() %>% select(Estimate)
+
+PredictedValuesNegBinom = bind_cols(PredictCovidOther, NegBinomPredicted)   
+PredictedValuesZeroInf = bind_cols(PredictCovidOther, ZeroInflPredicted)   
+
+dput(PredictedValuesNegBinom , "Data/NegBinomPredVals" )
+dput(PredictedValuesZeroInf, "Data/ZeroInfPredVals")
+
+dput(PostNegBinom_4, "Data/PosterionNegBinom")
+
+```
+
+The plot below shows the posterior distribution for each of the parameters. We look at 90% credible intervals. The red shade below shows the distribution of the posterior samples between the 10th percentile and 90th percentile. 
+
+The choice of credible intervals is completely arbitrary. As we can see, there is no parameter, where the entire distribution of the posterior is different than zero. However, both parameters with median income exclude zero in the bulk of their distribution. 
+
+```{r CoefsPlt , fig.height=9}
+
+MakeCls = dget("Data/PosterionNegBinom") %>% 
+  select(b_MedIncome:`b_MedIncome:Older64`) %>% 
+  tidyr::gather(Nm, Value) %>%
+  group_by(Nm) %>% 
+  summarise(p90 = quantile(Value, .90),
+            p10 = quantile(Value, .10),
+            p50 = quantile(Value, .5)) %>% 
+  ungroup()
+
+
+PostCoefPlt = dget("Data/PosterionNegBinom") %>% 
+  select(b_MedIncome:`b_MedIncome:Older64`) %>% 
+  tidyr::gather(Nm, Value) %>% 
+  inner_join(MakeCls, by = "Nm") %>% 
+  mutate(Clr = case_when(Value < p90 &  Value > p10 ~ "Bulk", 
+                         TRUE ~ "Tails")) %>% 
+  ggplot(., aes(x = Value, fill= Clr)) + 
+  geom_histogram() +
+  theme_classic() +
+  theme(legend.position = "none") +
+  geom_vline(xintercept = 0) +
+  facet_wrap(~Nm, scales = "free", ncol = 2)
+  
+PostCoefPlt
+
+```
+
+
+
+
+```{r Prediction}
+
+PredictedValuesNegBinom = dget( "Data/NegBinomPredVals" )
+PredictedValuesZeroInf = dget("Data/ZeroInfPredVals")
+
+
+GetLeafletPlts = function(x) {
+  
+Predcov_popup <- paste0("<br><strong>Covid Cases: </strong>", 
+                        x$Estimate)
+
+bins <- c(0, 10,50, 100,200, 300,400, 500, Inf)
+pal <- colorBin("RdYlBu", domain = x$Estimate, bins = bins)
+
+CovidPredictedLeaf = leaflet(x) %>% 
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  addPolygons(fillColor = ~pal(Estimate),
+              color = "white",
+              weight = 1,
+              opacity = 1,
+              fillOpacity = 0.65,
+              popup = Predcov_popup) %>% 
+  addLegend("bottomright", pal = pal, values = ~x$Estimate,
+    title = "Predicted Covid Cases",
+    opacity = 1)
+
+return(CovidPredictedLeaf)
+  
+}
+
+LeafletNegBinom = GetLeafletPlts(PredictedValuesNegBinom)
+LeafletNegBinom = GetLeafletPlts(PredictedValuesZeroInf)
+
+
+
+```
+
+
+As the table below shows, the negative binomial model greatly increases the estimated case number based on the 2016 Census variables. The table shows that for all Census Districts within the Toronto CMA (except the City of Toronto), the negative binomial model's estimates are much higher. 
+
+```{r PredictedValsTbl}
+
+PredictedValuesZeroInf %>%
+  as_tibble() %>% 
+  select(CD_UID, Estimate) %>% 
+  mutate(Estimate = round(Estimate, digits = 0)) %>% 
+  group_by(CD_UID) %>% 
+  summarise(`Zero Inflation Estimate` = sum(Estimate)) %>% 
+  ungroup() %>% 
+  inner_join(PredictedValuesNegBinom %>%
+  as_tibble() %>% 
+  select(CD_UID, Estimate) %>% 
+  mutate(Estimate = round(Estimate, digits = 0)) %>% 
+  group_by(CD_UID) %>% 
+  summarise(`Negative Binomial Estimate` = sum(Estimate)) %>% 
+  ungroup()) %>%
+  bind_rows(
+    summarise_if(., is.numeric, sum) %>% 
+      mutate(CD_UID = "Total")
+  ) %>% 
+  gt()
+
+```
+
+If we look at Census District 3521, which is Peel Region, we see that there are 5271 estimated cases for the zero inflated model, and 10476 for the negative binomial model. According to [Peel Region](https://www.peelregion.ca/coronavirus/case-status/), there are 7513 cases as of August 25, and 31 new cases on August 25. The dataset we have from the City of Toronto was downloaded on August 10th, and reflected cases up to that date. 
+
+To extrapolate the Peel Covid-19 cases for August 19, we assume a constant rate of growth of 31 new cases over 15 days, which is `r 31*15`. The negative binomial model considerably overestimates the reported Covid-19 cases, while the zero-inflated model underestimates the number of Covid-19 cases in Peel Region. 
+
+## Limitations
+
+There are serious limitations to this data. FSAs are large areas, and are much smaller than Census Tracts. Using the center of the FSA is an imperfect way to assign a Census Tract to an FSA.
+
+Furthermore, there are many more limitations to the Covid-19 data. The dataset we have includes all Covid-19 positive cases as of August 10th. Testing policies varied from very stringent at the beginning of the pandemic to asymptomatic testing at the beginning of August. 
+
+
+
+
