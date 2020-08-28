@@ -3,9 +3,10 @@ Find Dissemination Area in Forward Sortation Area
 
 ## Covid Mapping Part 2
 
-The [first]() post looked at how we can use the center of a Forward
-Sortation Area (FSA) into a Census Tract. However, as noted, this is a
-messy process. FSAs are large ares, see the [Wikipedia
+The [first](https://kieranshah.netlify.app/2020/08/26/covid-mapping/)
+post looked at how we can use the center of a Forward Sortation Area
+(FSA) into a Census Tract. However, as noted, this is a messy process.
+FSAs are large ares, see the [Wikipedia
 page](https://en.wikipedia.org/wiki/List_of_postal_codes_of_Canada:_M).
 Instead of this messy process, we can look at FSAs, and use
 Dissemination Areas from Census 2016 to fit those into FSAs. A complete
@@ -76,7 +77,7 @@ the `st_join` function. We now have the DA for each of the City of
 Toronto FSAs.
 
 To get the Census 2016 variables at the FSA level, we take the weighted
-mean, using population. FSAs var in population, which is why we use the
+mean, using population. FSAs vary in population, which is why we use the
 weighted mean.
 
 The mean number of DAs per FSA in the City of Toronto is 59, with a
@@ -138,7 +139,7 @@ parsimonious model, which is the first model.
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#vhhfthrxpq .gt_table {
+#horsrrzcle .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -161,7 +162,7 @@ parsimonious model, which is the first model.
   border-left-color: #D3D3D3;
 }
 
-#vhhfthrxpq .gt_heading {
+#horsrrzcle .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -173,7 +174,7 @@ parsimonious model, which is the first model.
   border-right-color: #D3D3D3;
 }
 
-#vhhfthrxpq .gt_title {
+#horsrrzcle .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -183,7 +184,7 @@ parsimonious model, which is the first model.
   border-bottom-width: 0;
 }
 
-#vhhfthrxpq .gt_subtitle {
+#horsrrzcle .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -193,13 +194,13 @@ parsimonious model, which is the first model.
   border-top-width: 0;
 }
 
-#vhhfthrxpq .gt_bottom_border {
+#horsrrzcle .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#vhhfthrxpq .gt_col_headings {
+#horsrrzcle .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -214,7 +215,7 @@ parsimonious model, which is the first model.
   border-right-color: #D3D3D3;
 }
 
-#vhhfthrxpq .gt_col_heading {
+#horsrrzcle .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -234,7 +235,7 @@ parsimonious model, which is the first model.
   overflow-x: hidden;
 }
 
-#vhhfthrxpq .gt_column_spanner_outer {
+#horsrrzcle .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -246,15 +247,15 @@ parsimonious model, which is the first model.
   padding-right: 4px;
 }
 
-#vhhfthrxpq .gt_column_spanner_outer:first-child {
+#horsrrzcle .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#vhhfthrxpq .gt_column_spanner_outer:last-child {
+#horsrrzcle .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#vhhfthrxpq .gt_column_spanner {
+#horsrrzcle .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -266,7 +267,7 @@ parsimonious model, which is the first model.
   width: 100%;
 }
 
-#vhhfthrxpq .gt_group_heading {
+#horsrrzcle .gt_group_heading {
   padding: 8px;
   color: #333333;
   background-color: #FFFFFF;
@@ -288,7 +289,7 @@ parsimonious model, which is the first model.
   vertical-align: middle;
 }
 
-#vhhfthrxpq .gt_empty_group_heading {
+#horsrrzcle .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -303,19 +304,19 @@ parsimonious model, which is the first model.
   vertical-align: middle;
 }
 
-#vhhfthrxpq .gt_striped {
+#horsrrzcle .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#vhhfthrxpq .gt_from_md > :first-child {
+#horsrrzcle .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#vhhfthrxpq .gt_from_md > :last-child {
+#horsrrzcle .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#vhhfthrxpq .gt_row {
+#horsrrzcle .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -334,7 +335,7 @@ parsimonious model, which is the first model.
   overflow-x: hidden;
 }
 
-#vhhfthrxpq .gt_stub {
+#horsrrzcle .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -346,7 +347,7 @@ parsimonious model, which is the first model.
   padding-left: 12px;
 }
 
-#vhhfthrxpq .gt_summary_row {
+#horsrrzcle .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -356,7 +357,7 @@ parsimonious model, which is the first model.
   padding-right: 5px;
 }
 
-#vhhfthrxpq .gt_first_summary_row {
+#horsrrzcle .gt_first_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -366,7 +367,7 @@ parsimonious model, which is the first model.
   border-top-color: #D3D3D3;
 }
 
-#vhhfthrxpq .gt_grand_summary_row {
+#horsrrzcle .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -376,7 +377,7 @@ parsimonious model, which is the first model.
   padding-right: 5px;
 }
 
-#vhhfthrxpq .gt_first_grand_summary_row {
+#horsrrzcle .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -386,7 +387,7 @@ parsimonious model, which is the first model.
   border-top-color: #D3D3D3;
 }
 
-#vhhfthrxpq .gt_table_body {
+#horsrrzcle .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -395,7 +396,7 @@ parsimonious model, which is the first model.
   border-bottom-color: #D3D3D3;
 }
 
-#vhhfthrxpq .gt_footnotes {
+#horsrrzcle .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -409,13 +410,13 @@ parsimonious model, which is the first model.
   border-right-color: #D3D3D3;
 }
 
-#vhhfthrxpq .gt_footnote {
+#horsrrzcle .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding: 4px;
 }
 
-#vhhfthrxpq .gt_sourcenotes {
+#horsrrzcle .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -429,47 +430,47 @@ parsimonious model, which is the first model.
   border-right-color: #D3D3D3;
 }
 
-#vhhfthrxpq .gt_sourcenote {
+#horsrrzcle .gt_sourcenote {
   font-size: 90%;
   padding: 4px;
 }
 
-#vhhfthrxpq .gt_left {
+#horsrrzcle .gt_left {
   text-align: left;
 }
 
-#vhhfthrxpq .gt_center {
+#horsrrzcle .gt_center {
   text-align: center;
 }
 
-#vhhfthrxpq .gt_right {
+#horsrrzcle .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#vhhfthrxpq .gt_font_normal {
+#horsrrzcle .gt_font_normal {
   font-weight: normal;
 }
 
-#vhhfthrxpq .gt_font_bold {
+#horsrrzcle .gt_font_bold {
   font-weight: bold;
 }
 
-#vhhfthrxpq .gt_font_italic {
+#horsrrzcle .gt_font_italic {
   font-style: italic;
 }
 
-#vhhfthrxpq .gt_super {
+#horsrrzcle .gt_super {
   font-size: 65%;
 }
 
-#vhhfthrxpq .gt_footnote_marks {
+#horsrrzcle .gt_footnote_marks {
   font-style: italic;
   font-size: 65%;
 }
 </style>
 
-<div id="vhhfthrxpq" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<div id="horsrrzcle" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 
 <table class="gt_table">
 
@@ -586,7 +587,7 @@ SkewMdl\_5
 The final model includes:
 
 1.  Median Income
-2.  Share of Asian Population
+2.  Share of different ethnicities as a percent of total population
 3.  Household size
 4.  Share of population older the age of 64
 
@@ -618,7 +619,7 @@ considerable amount.
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#yebriauxpw .gt_table {
+#htldakaffx .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -641,7 +642,7 @@ considerable amount.
   border-left-color: #D3D3D3;
 }
 
-#yebriauxpw .gt_heading {
+#htldakaffx .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -653,7 +654,7 @@ considerable amount.
   border-right-color: #D3D3D3;
 }
 
-#yebriauxpw .gt_title {
+#htldakaffx .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -663,7 +664,7 @@ considerable amount.
   border-bottom-width: 0;
 }
 
-#yebriauxpw .gt_subtitle {
+#htldakaffx .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -673,13 +674,13 @@ considerable amount.
   border-top-width: 0;
 }
 
-#yebriauxpw .gt_bottom_border {
+#htldakaffx .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#yebriauxpw .gt_col_headings {
+#htldakaffx .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -694,7 +695,7 @@ considerable amount.
   border-right-color: #D3D3D3;
 }
 
-#yebriauxpw .gt_col_heading {
+#htldakaffx .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -714,7 +715,7 @@ considerable amount.
   overflow-x: hidden;
 }
 
-#yebriauxpw .gt_column_spanner_outer {
+#htldakaffx .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -726,15 +727,15 @@ considerable amount.
   padding-right: 4px;
 }
 
-#yebriauxpw .gt_column_spanner_outer:first-child {
+#htldakaffx .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#yebriauxpw .gt_column_spanner_outer:last-child {
+#htldakaffx .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#yebriauxpw .gt_column_spanner {
+#htldakaffx .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -746,7 +747,7 @@ considerable amount.
   width: 100%;
 }
 
-#yebriauxpw .gt_group_heading {
+#htldakaffx .gt_group_heading {
   padding: 8px;
   color: #333333;
   background-color: #FFFFFF;
@@ -768,7 +769,7 @@ considerable amount.
   vertical-align: middle;
 }
 
-#yebriauxpw .gt_empty_group_heading {
+#htldakaffx .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -783,19 +784,19 @@ considerable amount.
   vertical-align: middle;
 }
 
-#yebriauxpw .gt_striped {
+#htldakaffx .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#yebriauxpw .gt_from_md > :first-child {
+#htldakaffx .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#yebriauxpw .gt_from_md > :last-child {
+#htldakaffx .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#yebriauxpw .gt_row {
+#htldakaffx .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -814,7 +815,7 @@ considerable amount.
   overflow-x: hidden;
 }
 
-#yebriauxpw .gt_stub {
+#htldakaffx .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -826,7 +827,7 @@ considerable amount.
   padding-left: 12px;
 }
 
-#yebriauxpw .gt_summary_row {
+#htldakaffx .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -836,7 +837,7 @@ considerable amount.
   padding-right: 5px;
 }
 
-#yebriauxpw .gt_first_summary_row {
+#htldakaffx .gt_first_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -846,7 +847,7 @@ considerable amount.
   border-top-color: #D3D3D3;
 }
 
-#yebriauxpw .gt_grand_summary_row {
+#htldakaffx .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -856,7 +857,7 @@ considerable amount.
   padding-right: 5px;
 }
 
-#yebriauxpw .gt_first_grand_summary_row {
+#htldakaffx .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -866,7 +867,7 @@ considerable amount.
   border-top-color: #D3D3D3;
 }
 
-#yebriauxpw .gt_table_body {
+#htldakaffx .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -875,7 +876,7 @@ considerable amount.
   border-bottom-color: #D3D3D3;
 }
 
-#yebriauxpw .gt_footnotes {
+#htldakaffx .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -889,13 +890,13 @@ considerable amount.
   border-right-color: #D3D3D3;
 }
 
-#yebriauxpw .gt_footnote {
+#htldakaffx .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding: 4px;
 }
 
-#yebriauxpw .gt_sourcenotes {
+#htldakaffx .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -909,47 +910,47 @@ considerable amount.
   border-right-color: #D3D3D3;
 }
 
-#yebriauxpw .gt_sourcenote {
+#htldakaffx .gt_sourcenote {
   font-size: 90%;
   padding: 4px;
 }
 
-#yebriauxpw .gt_left {
+#htldakaffx .gt_left {
   text-align: left;
 }
 
-#yebriauxpw .gt_center {
+#htldakaffx .gt_center {
   text-align: center;
 }
 
-#yebriauxpw .gt_right {
+#htldakaffx .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#yebriauxpw .gt_font_normal {
+#htldakaffx .gt_font_normal {
   font-weight: normal;
 }
 
-#yebriauxpw .gt_font_bold {
+#htldakaffx .gt_font_bold {
   font-weight: bold;
 }
 
-#yebriauxpw .gt_font_italic {
+#htldakaffx .gt_font_italic {
   font-style: italic;
 }
 
-#yebriauxpw .gt_super {
+#htldakaffx .gt_super {
   font-size: 65%;
 }
 
-#yebriauxpw .gt_footnote_marks {
+#htldakaffx .gt_footnote_marks {
   font-style: italic;
   font-size: 65%;
 }
 </style>
 
-<div id="yebriauxpw" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<div id="htldakaffx" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 
 <table class="gt_table">
 
@@ -985,7 +986,7 @@ Skew Normal Model
 
 <td class="gt_row gt_right">
 
-2333
+2166
 
 </td>
 
@@ -1001,7 +1002,7 @@ Skew Normal Model
 
 <td class="gt_row gt_right">
 
-7031
+5190
 
 </td>
 
@@ -1017,7 +1018,7 @@ Skew Normal Model
 
 <td class="gt_row gt_right">
 
-2673
+1328
 
 </td>
 
@@ -1033,7 +1034,7 @@ Skew Normal Model
 
 <td class="gt_row gt_right">
 
-7010
+11164
 
 </td>
 
@@ -1049,7 +1050,7 @@ Skew Normal Model
 
 <td class="gt_row gt_right">
 
-164
+158
 
 </td>
 
@@ -1065,7 +1066,7 @@ Skew Normal Model
 
 <td class="gt_row gt_right">
 
-2979
+2322
 
 </td>
 
@@ -1081,7 +1082,7 @@ Skew Normal Model
 
 <td class="gt_row gt_right">
 
-648
+489
 
 </td>
 
@@ -1097,7 +1098,7 @@ Total
 
 <td class="gt_row gt_right">
 
-22838
+22817
 
 </td>
 
@@ -1110,3 +1111,11 @@ Total
 </div>
 
 <!--/html_preserve-->
+
+## Limitations
+
+The analysis and Covid-19 testing limitations exist as discussed in the
+previous post. However, an added challenge is the polygon merge between
+the Covid-19 FSA shape file and the Census 2016 DA file is imperfect.
+There are a few FSAs which start with ‘L’, but are considered to be part
+of the Census District 3520, which is the City of Toronto.

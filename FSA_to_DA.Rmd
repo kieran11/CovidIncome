@@ -356,7 +356,7 @@ tibble(`Model Names` = names(mdlWeights),
 The final model includes:  
 
 1. Median Income
-2. Share of Asian Population
+2. Share of different ethnicities as a percent of total population
 3. Household size
 4. Share of population older the age of 64
 
@@ -414,7 +414,7 @@ To extrapolate the Peel Covid-19 cases for August 19, we assume a constant rate 
 
 PredictedValues %>%
   filter(Split == "GTA") %>% 
-  mutate(CD_UID = case_when(stringi::stri_sub(CFSAUID, 1, 1) %in% c("L4", "L5") ~ "3521",
+  mutate(CD_UID = case_when(stringi::stri_sub(CFSAUID, 1, 2) %in% c("L4", "L5") ~ "3521",
                             TRUE ~ CD_UID)) %>%
   as_tibble() %>% 
   select(CD_UID, Estimate) %>% 
