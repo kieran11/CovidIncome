@@ -430,6 +430,35 @@ PredictedValues %>%
 
 ```
 
+
+```{r}
+
+PredictedVals_GTA =  PredictedValues %>%
+  filter(Split == "GTA")
+
+Predcov_popup <- paste0("<br><strong>Covid Cases: </strong>", 
+                        round(PredictedVals_GTA$Estimate))
+
+bins <- c(0, 150,155, 160,165, 170,175, 200)
+pal <- colorBin("RdYlBu", domain = PredictedVals_GTA$Estimate, bins = bins)
+
+CovidPredictedLeaf = leaflet(PredictedVals_GTA) %>% 
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  addPolygons(fillColor = ~pal(Estimate),
+              color = "white",
+              weight = 1,
+              opacity = 1,
+              fillOpacity = 0.65,
+              popup = Predcov_popup) %>% 
+  addLegend("bottomright", pal = pal, values = ~PredictedVals_GTA$Estimate,
+    title = "Predicted Covid Cases",
+    opacity = 1)
+
+#CovidPredictedLeaf
+
+
+```
+
 ## Limitations
 
 The analysis and Covid-19 testing limitations exist as discussed in the previous post. However, an added challenge is the polygon merge between the Covid-19 FSA shape file and the Census 2016 DA file is imperfect. There are a few FSAs which start with 'L', but are considered to be part of the Census District 3520, which is the City of Toronto. 
