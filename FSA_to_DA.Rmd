@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 
 ## Covid Mapping Part 2
 
-The [first]() post looked at how we can use the center of a Forward Sortation Area (FSA) into a Census Tract. However, as noted, this is a messy process. FSAs are large ares, see the [Wikipedia page](https://en.wikipedia.org/wiki/List_of_postal_codes_of_Canada:_M). Instead of this messy process, we can look at FSAs, and use Dissemination Areas from Census 2016 to fit those into FSAs. A complete guide to this process can be found on the Statistics Canada website, [here](file:///C:/Users/Kieran%20Shah/Downloads/92-179-g2011001-eng.pdf). 
+The [first](https://kieranshah.netlify.app/2020/08/26/covid-mapping/) post looked at how we can use the center of a Forward Sortation Area (FSA) into a Census Tract. However, as noted, this is a messy process. FSAs are large ares, see the [Wikipedia page](https://en.wikipedia.org/wiki/List_of_postal_codes_of_Canada:_M). Instead of this messy process, we can look at FSAs, and use Dissemination Areas from Census 2016 to fit those into FSAs. A complete guide to this process can be found on the Statistics Canada website, [here](file:///C:/Users/Kieran%20Shah/Downloads/92-179-g2011001-eng.pdf). 
 
 Dissemination Areas (DA) are the smallest unit Statistics Canada reports. They usually range between 400 and 700 [people](https://en.wikipedia.org/wiki/Census_geographic_units_of_Canada#Dissemination_areas).
 
@@ -80,7 +80,7 @@ census_data <- get_census(dataset='CA16', regions=list(CMA="35535"),
 
 After getting the 2016 Census data, we join the FSA shapefile, and the Census data. Similar to the [previous post](https://kieranshah.netlify.app/2020/08/26/covid-mapping/), we use the `st_join` function. We now have the DA for each of the City of Toronto FSAs.  
 
-To get the Census 2016 variables at the FSA level, we take the weighted mean, using population. FSAs var in population, which is why we use the weighted mean. 
+To get the Census 2016 variables at the FSA level, we take the weighted mean, using population. FSAs vary in population, which is why we use the weighted mean. 
 
 ```{r RollUpToFSA, eval = FALSE}
 
@@ -430,4 +430,6 @@ PredictedValues %>%
 
 ```
 
+## Limitations
 
+The analysis and Covid-19 testing limitations exist as discussed in the previous post. However, an added challenge is the polygon merge between the Covid-19 FSA shape file and the Census 2016 DA file is imperfect. There are a few FSAs which start with 'L', but are considered to be part of the Census District 3520, which is the City of Toronto. 
